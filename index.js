@@ -25,7 +25,13 @@ app.post('/add-message', (req, res) => {
 
 app.get('/messages', (req, res) => {
     fs.readFile(filePath, (err, data) => {
-        if (err) return res.status(500).send({ error: "Faild to fetch messages" });
+        if (err) {
+            if (err.code === "ENOENT") {
+                fs.writeFile(filePath, "", () => { });
+                return res.send({ messages: [] });
+            }
+            return res.status(500).send({ error: "Failed to fetch messages" });
+        }
         const messages = data.toString().split("%%%");
         if (messages.length > 0) messages.pop();
         res.send({ messages });
